@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inspeção de PCIs de LED</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Sistema de Inspeção Visual para PCIs de LED Automotivo</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <section class="upload-section">
+                <h2>Upload de Imagem para Inspeção</h2>
+                <form class="upload-form" id="upload-form" action="/analyze" method="post" enctype="multipart/form-data">
+                    <div class="file-input-container">
+                        <i class="fas fa-upload"></i>
+                        <p>Clique ou arraste uma imagem da PCI para análise</p>
+                        <input type="file" name="image" id="image-input" accept="image/*" required>
+                    </div>
+                    <div id="preview-container" style="display: none;">
+                        <h3>Imagem selecionada:</h3>
+                        <img id="image-preview" src="" alt="Preview da imagem" style="max-width: 100%;">
+                    </div>
+                    <div class="reference-section">
+                        <h3>Imagem de Referência (PCI sem defeitos)</h3>
+                        <img src="{{ url_for('static', filename='images/samples/reference_good.jpg') }}" alt="Imagem de referência" class="reference-image">
+                    </div>
+                    <button type="submit" id="analyze-btn">Analisar PCI</button>
+                </form>
+                <div class="loading" id="loading">
+                    <img src="{{ url_for('static', filename='images/loading.gif') }}" alt="Carregando...">
+                    <p>Processando imagem, por favor aguarde...</p>
+                </div>
+            </section>
+
+            <section class="result-section" id="result-section" style="display: none;">
+                <h2>Resultado da Inspeção</h2>
+                <div class="result-images">
+                    <div class="image-container">
+                        <h3>Imagem Analisada</h3>
+                        <img id="analyzed-image" src="" alt="Imagem analisada">
+                    </div>
+                    <div class="image-container">
+                        <h3>Detecção de Defeitos</h3>
+                        <img id="defect-image" src="" alt="Imagem com defeitos destacados">
+                    </div>
+                </div>
+                <div class="result-status" id="result-status">
+                    <!-- Status será preenchido via JavaScript -->
+                </div>
+                <div class="defects-list" id="defects-list">
+                    <h3>Defeitos Detectados:</h3>
+                    <ul id="defects-items">
+                        <!-- Lista de defeitos será preenchida via JavaScript -->
+                    </ul>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // Preview da imagem selecionada
+        const imageInput = document.getElementById('image-input');
+        const imagePreview = document.getElementById('image-preview');
+        const previewContainer = document.getElementById('preview-container');
+        const uploadForm = document.getElementById('upload-form');
+        const loadingIndicator = document.getElementById('loading');
+        const resultSection = document.getElementById('result-section');
+        const resultStatus = document.getElementById('result-status');
+        const analyzedImage = document.getElementById('analyzed-image');
+        const defectImage = document.getElementById('defect-image');
+        const defectsList = document.getElementById('defects-items');
+
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            // Mostrar indicador de carregamento
+            loadingIndicator.style.display = 'block';
+            
+            fetch('/analyze', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder indicador de carregamento
+                loadingIndicator.style.display = 'none';
+                
+                // Mostrar seção de resultados
+                resultSection.style.display = 'flex';
+                
+                // Atualizar imagens
+                analyzedImage.src = data.analyzed_image;
+                defectImage.src = data.defect_image;
+                
+                // Atualizar status
+                if (data.approved) {
+                    resultStatus.className = 'result-status status-approved';
+                    resultStatus.textContent = 'APROVADO ✓';
+                } else {
+                    resultStatus.className = 'result-status status-rejected';
+                    resultStatus.textContent = 'REPROVADO ✗';
+                }
+                
+                // Limpar e preencher lista de defeitos
+                defectsList.innerHTML = '';
+                if (data.defects.length > 0) {
+                    data.defects.forEach(defect => {
+                        const li = document.createElement('li');
+                        li.textContent = defect;
+                        defectsList.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.textContent = 'Nenhum defeito detectado.';
+                    defectsList.appendChild(li);
+                }
+                
+                // Rolar para a seção de resultados
+                resultSection.scrollIntoView({ behavior: 'smooth' });
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                loadingIndicator.style.display = 'none';
+                alert('Ocorreu um erro ao processar a imagem. Por favor, tente novamente.');
+            });
+        });
+    </script>
+</body>
+</html>

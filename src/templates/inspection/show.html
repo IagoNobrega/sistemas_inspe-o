@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes da Inspeção - Sistema de Inspeção de PCIs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Detalhes da Inspeção</h1>
+    <div>
+        <a href="{{ url_for('inspection.history') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar para Histórico
+        </a>
+        <a href="{{ url_for('products.show', id=inspection.product_id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-box"></i> Ver Produto
+        </a>
+        <a href="{{ url_for('inspection.inspect_form', product_id=inspection.product_id) }}" class="btn btn-primary">
+            <i class="bi bi-search"></i> Nova Inspeção
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informações da Inspeção</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <tr>
+                        <th>ID:</th>
+                        <td>#{{ inspection.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Data:</th>
+                        <td>{{ inspection.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Produto:</th>
+                        <td>
+                            <a href="{{ url_for('products.show', id=inspection.product_id) }}">
+                                {{ inspection.product.code }} - {{ inspection.product.name }}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Resultado:</th>
+                        <td>
+                            {% if inspection.approved %}
+                                <span class="badge bg-success">APROVADO</span>
+                            {% else %}
+                                <span class="badge bg-danger">REPROVADO</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Defeitos:</th>
+                        <td>{{ inspection.defects_count }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Imagem de Referência</h5>
+            </div>
+            <div class="card-body text-center">
+                {% set primary_image = None %}
+                {% for img in inspection.product.reference_images %}
+                    {% if img.is_primary %}
+                        {% set primary_image = img %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if primary_image %}
+                    <img src="{{ url_for('static', filename=primary_image.path) }}" 
+                         alt="{{ inspection.product.name }}" 
+                         class="img-fluid">
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Sem imagem de referência.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Resultado da Inspeção</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Imagem Original</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <img src="{{ url_for('static', filename=inspection.image_path) }}" 
+                                     alt="Imagem Original" 
+                                     class="img-fluid">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Defeitos Detectados</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <img src="{{ url_for('static', filename=inspection.result_image_path) }}" 
+                                     alt="Defeitos Detectados" 
+                                     class="img-fluid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Detalhes da Análise</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if defects %}
+                            <ul class="list-group">
+                                {% for defect in defects %}
+                                    <li class="list-group-item">{{ defect }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-success">Nenhum defeito detectado.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

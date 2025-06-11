@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Produto - Sistema de Inspeção de PCIs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Editar Produto</h1>
+    <div>
+        <a href="{{ url_for('products.show', id=product.id) }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar para Detalhes
+        </a>
+        <a href="{{ url_for('products.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-list"></i> Lista de Produtos
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informações do Produto</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('products.update', id=product.id) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Código *</label>
+                        <input type="text" class="form-control" id="code" name="code" value="{{ product.code }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nome *</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ product.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ product.description }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reference_image" class="form-label">Imagem de Referência</label>
+                        <input type="file" class="form-control" id="reference_image" name="reference_image" accept="image/*">
+                        <div class="form-text">Selecione uma nova imagem para substituir a imagem de referência atual.</div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="active" name="active" {% if product.active %}checked{% endif %}>
+                        <label class="form-check-label" for="active">Ativo</label>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Imagens de Referência</h5>
+            </div>
+            <div class="card-body">
+                {% if product.reference_images %}
+                    <div class="row">
+                        {% for image in product.reference_images %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <img src="{{ url_for('static', filename=image.path) }}" class="card-img-top" alt="{{ product.name }}">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            {% if image.is_primary %}
+                                                <span class="badge bg-success">Principal</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Secundária</span>
+                                            {% endif %}
+                                        </h6>
+                                        <div class="d-flex justify-content-between">
+                                            {% if not image.is_primary %}
+                                                <form method="post" action="{{ url_for('products.set_primary_image', id=product.id, image_id=image.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-star"></i> Definir como Principal
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            <form method="post" action="{{ url_for('products.delete_image', id=product.id, image_id=image.id) }}" onsubmit="return confirm('Tem certeza que deseja excluir esta imagem?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i> Excluir
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Este produto não possui imagens de referência.
+                    </div>
+                {% endif %}
+                
+                <hr>
+                
+                <h5>Adicionar Nova Imagem de Referência</h5>
+                <form method="post" action="{{ url_for('products.add_image', id=product.id) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="new_image" class="form-label">Selecionar Imagem</label>
+                        <input type="file" class="form-control" id="new_image" name="image" accept="image/*" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_primary" name="is_primary">
+                        <label class="form-check-label" for="is_primary">Definir como imagem principal</label>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Adicionar Imagem
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

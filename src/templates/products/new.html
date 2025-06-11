@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Novo Produto - Sistema de Inspeção de PCIs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Novo Produto</h1>
+    <div>
+        <a href="{{ url_for('products.index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar para Lista
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Informações do Produto</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{{ url_for('products.create') }}" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="code" class="form-label">Código *</label>
+                <input type="text" class="form-control" id="code" name="code" required>
+                <div class="form-text">Código único para identificação do produto.</div>
+            </div>
+            <div class="mb-3">
+                <label for="name" class="form-label">Nome *</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Descrição</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="reference_image" class="form-label">Imagem de Referência *</label>
+                <input type="file" class="form-control" id="reference_image" name="reference_image" accept="image/*">
+                <div class="form-text">Selecione uma imagem de uma peça em bom estado para ser usada como referência na inspeção.</div>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="active" name="active" checked>
+                <label class="form-check-label" for="active">Ativo</label>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Salvar Produto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
